@@ -2,6 +2,7 @@ package airports;
 
 import airports.exceptions.*;
 import flyingObjects.Aircraft;
+
 import java.util.*;
 
 public class ListBasedMinimalAirport implements MinimalAirport {
@@ -45,22 +46,120 @@ public class ListBasedMinimalAirport implements MinimalAirport {
 		return scheduledFlights.size();
 	}
 
-}
+	@Override
+	public void land(Aircraft a) {
+		if (a == null) {
+			throw new NullPointerException("L'aircraft no pot ser null");
+		}
+		if (infrastructure.contains(a)) {
+			throw new AlreadyInAirportException("L'aircraft ja es a la lista");
+		}
+		if (isFull()) {
+			throw new FullAirportException("L'aeroport esta ple");
+		}
+		infrastructure.add(a);
+	}
 
-class AircraftByNameComparator implements Comparator<Aircraft> {
+	@Override
+	public void takeOff(Aircraft a) {
+		if (a == null) {
+			throw new NullPointerException("L'aircraft no pot ser null");
+		}
+		if (!infrastructure.contains(a)) {
+			throw new NotInAirportException("L'aircraft no esta a la lista");
+		}
+		infrastructure.remove(a);
+	}
 
-	public AircraftByNameComparator() {}
+	@Override
+	public void addFlight(Flight f) {
+		if (f == null) {
+			throw new NullPointerException("El flight no pot ser null");
+		}
+		if (!f.getOrigin().equals(getAirportId()) && !f.getDestination().equals(getAirportId())) {
+			throw new FlightScheduleException("El flight no esta relacionat amb aquest aeroport");
+		}
+		if (scheduledFlights.contains(f)) {
+			throw new FlightAlreadyExistsException("El flight ja existeix");
+		}
+		scheduledFlights.add(f);
+	}
 
-	public int compare(Aircraft a0, Aircraft a1) {
-		if (a0 == null && a1 == null) return 0;
-		if (a0 == null) return -1;
-		if (a1 == null) return 1;
+	@Override
+	public void takeOff(Flight f) {
+		if (f == null) {
+			throw new NullPointerException("El flight no pot ser null");
+		}
+		if (!scheduledFlights.contains(f)) {
+			throw new NotInAirportException("Aquest flight no ha estat registrat a l'airport");
+		}
+		if (!f.getOrigin().equals(getAirportId())) {
+			throw new FlightScheduleException("L'avió no surt de aquest airport");
+		}
+		if (!infrastructure.contains(f.getAircraft())) {
+			throw new FlightScheduleException("L'aircraft no pot ser borrat de l'aeroport");
+		}
 
-		if (a0.getName() == null && a1.getName() == null) return 0;
-		if (a0.getName() == null) return -1;
-		if (a1.getName() == null) return 1;
+		scheduledFlights.remove(f);
+		infrastructure.remove(f.getAircraft());
+	}
 
-		return a0.getName().compareTo(a1.getName());
+	@Override
+	public void land(Flight f) {
+		if (f == null) {
+			throw new NullPointerException("El flight no pot ser null");
+		}
+		if (!scheduledFlights.contains(f)) {
+			throw new NotInAirportException("Aquest flight no ha estat registrat a l'airport");
+		}
+		if (!f.getDestination().equals(getAirportId())) {
+			throw new FlightScheduleException("L'avió no arriba a aquest airport");
+		}
+
+		if (isFull()) {
+			throw new FlightScheduleException("L'aircraft no pot ser afegit a l'aeroport perque esta ple");
+		}
+
+		scheduledFlights.remove(f);
+		infrastructure.add(f.getAircraft());
+	}
+
+	@Override
+	public Flight[] byFlightDepartureTime() {
+		Flight[] flights = scheduledFlights.toArray(new Flight[0]);
+		Arrays.sort(flights, new DepartureTimesComparator());
+		return flights;
+	}
+
+	@Override
+	public Aircraft[] byAircraftName() {
+		Aircraft[] aircrafts = infrastructure.toArray(new Aircraft[0]);
+		Arrays.sort(aircrafts, new AircraftByNameComparator());
+		return aircrafts;
+	}
+
+	@Override
+	public Aircraft[] allAircrafts() {
+		Aircraft[] aircrafts = infrastructure.toArray(new Aircraft[0]);
+		Arrays.sort(aircrafts);
+		return aircrafts;
+	}
+
+	class AircraftByNameComparator implements Comparator<Aircraft> {
+
+		public AircraftByNameComparator() {
+		}
+
+		public int compare(Aircraft a0, Aircraft a1) {
+			if (a0 == null && a1 == null) return 0;
+			if (a0 == null) return -1;
+			if (a1 == null) return 1;
+
+			if (a0.getName() == null && a1.getName() == null) return 0;
+			if (a0.getName() == null) return -1;
+			if (a1.getName() == null) return 1;
+
+			return a0.getName().compareTo(a1.getName());
+		}
 	}
 }
-
