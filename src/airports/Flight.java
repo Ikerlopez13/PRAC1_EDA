@@ -20,11 +20,11 @@ public class Flight implements ScheduledTravel{
     private Date arrival;
 
     public Flight(String id, Aircraft aircraft, String origin, String destination, Date departure, Date arrival){
-        if(id == null){throw new IllegalArgumentException("El id no pot ser null");}
+        if(id == null){throw new IllegalArgumentException("L'id no pot ser null");}
         if(aircraft == null){throw new IllegalArgumentException("L'objecte aircraft no pot ser null");}
         if(arrival == null || departure == null){throw new FlightScheduleException("Ni la arrival ni el departure date poden ser null");}
         if(origin == null || destination == null){throw new FlightScheduleException("Ni l'origin ni la destination poden ser null");}
-        if(departure.compareTo(arrival)<0){throw new FlightScheduleException("L'arrival no pot ser avans de la departure time");}
+        if(departure.after(arrival) || departure.equals(arrival)){throw new FlightScheduleException("L'arrival no pot ser abans de la departure time");}
 
         this.id = id;
         this.aircraft = aircraft;
