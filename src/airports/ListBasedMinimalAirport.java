@@ -7,13 +7,13 @@ import java.util.*;
 
 public class ListBasedMinimalAirport implements MinimalAirport {
 	private List<Aircraft> infrastructure;
-	private List<Flight> scheduledFlights;
+	private List<Flight> flights;
 	private String airportId;
 
 	public ListBasedMinimalAirport() {
 		airportId = "BCN";
 		infrastructure = new ArrayList<>();
-		scheduledFlights = new ArrayList<>();
+		flights = new ArrayList<>();
 	}
 
 	@Override
@@ -24,6 +24,7 @@ public class ListBasedMinimalAirport implements MinimalAirport {
 	@Override
 	public int getCapacity() {
 		return Integer.MAX_VALUE;
+
 	}
 
 	@Override
@@ -33,7 +34,7 @@ public class ListBasedMinimalAirport implements MinimalAirport {
 
 	@Override
 	public boolean isFull() {
-		return false;
+		return infrastructure.size() >= getCapacity();
 	}
 
 	@Override
@@ -43,7 +44,7 @@ public class ListBasedMinimalAirport implements MinimalAirport {
 
 	@Override
 	public int getNumFlights() {
-		return scheduledFlights.size();
+		return flights.size();
 	}
 
 	@Override
@@ -79,10 +80,10 @@ public class ListBasedMinimalAirport implements MinimalAirport {
 		if (!f.getOrigin().equals(getAirportId()) && !f.getDestination().equals(getAirportId())) {
 			throw new FlightScheduleException("El flight no esta relacionat amb aquest aeroport");
 		}
-		if (scheduledFlights.contains(f)) {
+		if (flights.contains(f)) {
 			throw new FlightAlreadyExistsException("El flight ja existeix");
 		}
-		scheduledFlights.add(f);
+		flights.add(f);
 	}
 
 	@Override
@@ -90,7 +91,7 @@ public class ListBasedMinimalAirport implements MinimalAirport {
 		if (f == null) {
 			throw new NullPointerException("El flight no pot ser null");
 		}
-		if (!scheduledFlights.contains(f)) {
+		if (!flights.contains(f)) {
 			throw new NotInAirportException("Aquest flight no ha estat registrat a l'airport");
 		}
 		if (!f.getOrigin().equals(getAirportId())) {
@@ -100,7 +101,7 @@ public class ListBasedMinimalAirport implements MinimalAirport {
 			throw new FlightScheduleException("L'aircraft no pot ser borrat de l'aeroport");
 		}
 
-		scheduledFlights.remove(f);
+		flights.remove(f);
 		infrastructure.remove(f.getAircraft());
 	}
 
@@ -109,7 +110,7 @@ public class ListBasedMinimalAirport implements MinimalAirport {
 		if (f == null) {
 			throw new NullPointerException("El flight no pot ser null");
 		}
-		if (!scheduledFlights.contains(f)) {
+		if (!flights.contains(f)) {
 			throw new NotInAirportException("Aquest flight no ha estat registrat a l'airport");
 		}
 		if (!f.getDestination().equals(getAirportId())) {
@@ -120,13 +121,13 @@ public class ListBasedMinimalAirport implements MinimalAirport {
 			throw new FlightScheduleException("L'aircraft no pot ser afegit a l'aeroport perque esta ple");
 		}
 
-		scheduledFlights.remove(f);
+		flights.remove(f);
 		infrastructure.add(f.getAircraft());
 	}
 
 	@Override
 	public Flight[] byFlightDepartureTime() {
-		Flight[] flights = scheduledFlights.toArray(new Flight[0]);
+		Flight[] flights = this.flights.toArray(new Flight[0]);
 		Arrays.sort(flights, new DepartureTimesComparator());
 		return flights;
 	}
